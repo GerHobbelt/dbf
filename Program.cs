@@ -142,12 +142,12 @@ namespace Dbf
                 foreach (var dbfColumn in dbfTable.Columns)
                 {
                     var columnSchema = ColumnSchema(dbfColumn);
-                    Console.Write($"  {columnSchema}");
+                    var line = $"  {columnSchema}";
 
                     if (dbfColumn.Index < dbfTable.Columns.Count ||
                         !options.SkipDeleted)
-                        Console.Write(",");
-                    Write(options, "");
+                        line += ",";
+                    Write(options, line);
                 }
 
                 if (!options.SkipDeleted) Write(options, "  [deleted] [bit] NULL DEFAULT ((0))");
