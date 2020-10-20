@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -108,13 +109,14 @@ namespace Dbf
 
         private static void PrintCsv(Options options)
         {
+            List<string> lines = new List<string>();
             var encoding = GetEncoding();
             using (var dbfTable = new DbfTable(options.Filename, encoding))
             {
                 var columnNames = string.Join(",", dbfTable.Columns.Select(c => c.Name));
                 if (!options.SkipDeleted) columnNames += ",Deleted";
 
-                Write(options, columnNames);
+                lines.Add(columnNames);
 
                 var dbfRecord = new DbfRecord(dbfTable);
 
@@ -125,9 +127,11 @@ namespace Dbf
                     var values = string.Join(",", dbfRecord.Values.Select(v => EscapeValue(v)));
                     if (!options.SkipDeleted) values += $",{dbfRecord.IsDeleted}";
 
-                    Write(options, values);
+                    lines.Add(values);
                 }
             }
+
+            WriteAllLines(options, lines.ToArray());
         }
 
         private static void PrintSchema(Options options)
