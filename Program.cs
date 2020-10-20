@@ -77,6 +77,20 @@ namespace Dbf
             }
         }
 
+        private static void SetOutputFileTimestampToInputFile(string inputFilepath)
+        {
+            if (outputFilename != null)
+            {
+                var ct = File.GetCreationTime(inputFilepath);
+                var lwt = File.GetLastWriteTime(inputFilepath);
+                var lat = File.GetLastAccessTime(inputFilepath);
+
+                File.SetCreationTime(outputFilename, ct);
+                File.SetLastWriteTime(outputFilename, lwt);
+                File.SetLastAccessTime(outputFilename, lat);
+            }
+        }
+
         private static void PrintSummaryInfo(Options options)
         {
             var encoding = GetEncoding();
@@ -105,6 +119,8 @@ namespace Dbf
                         $"{name.PadRight(71 - 22)} {columnType.PadRight(10)} {length.PadRight(10)} {decimalCount}");
                 }
             }
+
+            SetOutputFileTimestampToInputFile(options.Filename);
         }
 
         private static void PrintCsv(Options options)
@@ -132,6 +148,8 @@ namespace Dbf
             }
 
             WriteAllLines(options, lines.ToArray());
+
+            SetOutputFileTimestampToInputFile(options.Filename);
         }
 
         private static void PrintSchema(Options options)
@@ -158,6 +176,8 @@ namespace Dbf
 
                 Write(options, ")");
             }
+
+            SetOutputFileTimestampToInputFile(options.Filename);
         }
 
         private static Encoding GetEncoding()
