@@ -44,11 +44,11 @@ namespace Dbf
                 {
                     outputFilename = options.Output;
 
-                    File.WriteAllText(outputFilename, text, Encoding.UTF8);
+                    File.WriteAllText(outputFilename, text + "\n", Encoding.UTF8);
                 }
                 else
                 {
-                    File.AppendAllText(outputFilename, text, Encoding.UTF8);
+                    File.AppendAllText(outputFilename, text + "\n", Encoding.UTF8);
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Dbf
                     $"Records: {header.RecordCount}",
                     "",
                     "Fields:",
-                    "Name             Type       Length     Decimal",
+                    "Name                                             Type       Length     Decimal",
                     "------------------------------------------------------------------------------"
                 });
 
@@ -102,7 +102,7 @@ namespace Dbf
                     var length = dbfColumn.Length.ToString();
                     var decimalCount = dbfColumn.DecimalCount;
                     Write(options,
-                        $"{name.PadRight(16)} {columnType.PadRight(10)} {length.PadRight(10)} {decimalCount}");
+                        $"{name.PadRight(71 - 22)} {columnType.PadRight(10)} {length.PadRight(10)} {decimalCount}");
                 }
             }
         }
