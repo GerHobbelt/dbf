@@ -19,5 +19,8 @@ namespace Dbf
 
         [Option(Required=true, HelpText="Path to the DBF file")]
         public string Filename { get; set; }
+
+        [Option(Required = false, Default = null, HelpText = "Path to the output file")]
+        public string Output { get; set; }
     }
 }

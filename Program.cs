@@ -29,6 +29,53 @@ namespace Dbf
             return 0;
         }
 
+        private static string outputFilename = null;
+
+        private static void Write(Options options, string text)
+        {
+            if (String.IsNullOrWhiteSpace(options.Output) || options.Output == "-")
+            {
+                Console.WriteLine(text);
+            }
+            else
+            {
+                if (outputFilename == null)
+                {
+                    outputFilename = options.Output;
+
+                    File.WriteAllText(outputFilename, text, Encoding.UTF8);
+                }
+                else
+                {
+                    File.AppendAllText(outputFilename, text, Encoding.UTF8);
+                }
+            }
+        }
+
+        private static void WriteAllLines(Options options, string[] lines)
+        {
+            if (String.IsNullOrWhiteSpace(options.Output) || options.Output == "-")
+            {
+                foreach (string l in lines)
+                {
+                    Console.WriteLine(l);
+                }
+            }
+            else
+            {
+                if (outputFilename == null)
+                {
+                    outputFilename = options.Output;
+
+                    File.WriteAllLines(outputFilename, lines, Encoding.UTF8);
+                }
+                else
+                {
+                    File.AppendAllLines(outputFilename, lines, Encoding.UTF8);
+                }
+            }
+        }
+
         private static void PrintSummaryInfo(Options options)
         {
             var encoding = GetEncoding();
@@ -36,14 +83,16 @@ namespace Dbf
             {
                 var header = dbfTable.Header;
 
-                Console.WriteLine($"Filename: {options.Filename}");
-                Console.WriteLine($"Type: {header.VersionDescription}");
-                Console.WriteLine($"Memo File: {dbfTable.Memo != null}");
-                Console.WriteLine($"Records: {header.RecordCount}");
-                Console.WriteLine();
-                Console.WriteLine("Fields:");
-                Console.WriteLine("Name             Type       Length     Decimal");
-                Console.WriteLine("------------------------------------------------------------------------------");
+                WriteAllLines(options, new[] {
+                    $"Filename: {options.Filename}",
+                    $"Type: {header.VersionDescription}",
+                    $"Memo File: {dbfTable.Memo != null}",
+                    $"Records: {header.RecordCount}",
+                    "",
+                    "Fields:",
+                    "Name             Type       Length     Decimal",
+                    "------------------------------------------------------------------------------"
+                });
 
                 foreach (var dbfColumn in dbfTable.Columns)
                 {
@@ -51,7 +100,7 @@ namespace Dbf
                     var columnType = ((char) dbfColumn.ColumnType).ToString();
                     var length = dbfColumn.Length.ToString();
                     var decimalCount = dbfColumn.DecimalCount;
-                    Console.WriteLine(
+                    Write(options,
                         $"{name.PadRight(16)} {columnType.PadRight(10)} {length.PadRight(10)} {decimalCount}");
                 }
             }
@@ -65,7 +114,7 @@ namespace Dbf
                 var columnNames = string.Join(",", dbfTable.Columns.Select(c => c.Name));
                 if (!options.SkipDeleted) columnNames += ",Deleted";
 
-                Console.WriteLine(columnNames);
+                Write(options, columnNames);
 
                 var dbfRecord = new DbfRecord(dbfTable);
 
@@ -76,7 +125,7 @@ namespace Dbf
                     var values = string.Join(",", dbfRecord.Values.Select(v => EscapeValue(v)));
                     if (!options.SkipDeleted) values += $",{dbfRecord.IsDeleted}";
 
-                    Console.WriteLine(values);
+                    Write(options, values);
                 }
             }
         }
@@ -87,8 +136,8 @@ namespace Dbf
             using (var dbfTable = new DbfTable(options.Filename, encoding))
             {
                 var tableName = Path.GetFileNameWithoutExtension(options.Filename);
-                Console.WriteLine($"CREATE TABLE [dbo].[{tableName}]");
-                Console.WriteLine("(");
+                Write(options, $"CREATE TABLE [dbo].[{tableName}]");
+                Write(options, "(");
 
                 foreach (var dbfColumn in dbfTable.Columns)
                 {
@@ -98,12 +147,12 @@ namespace Dbf
                     if (dbfColumn.Index < dbfTable.Columns.Count ||
                         !options.SkipDeleted)
                         Console.Write(",");
-                    Console.WriteLine();
+                    Write(options, "");
                 }
 
-                if (!options.SkipDeleted) Console.WriteLine("  [deleted] [bit] NULL DEFAULT ((0))");
+                if (!options.SkipDeleted) Write(options, "  [deleted] [bit] NULL DEFAULT ((0))");
 
-                Console.WriteLine(")");
+                Write(options, ")");
             }
         }
 
